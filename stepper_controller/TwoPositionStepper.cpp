@@ -43,34 +43,38 @@ bool TwoPositionStepper::_interrupted() {
   return digitalRead(_homePin);
 }
 
-bool TwoPositionStepper::cwStep() {
+void TwoPositionStepper::setDistanceFromHome(int newDistance) {
+  _distanceFromHome = newDistance;
+}
+
+bool TwoPositionStepper::cwStep(bool interruptable) {
   _write(HIGH, HIGH, LOW, LOW);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   _write(LOW, HIGH, HIGH, LOW);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   _write(LOW, LOW, HIGH, HIGH);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   _write(HIGH, LOW, LOW, HIGH);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   return false;
 }
 
-bool TwoPositionStepper::ccwStep() {
+bool TwoPositionStepper::ccwStep(bool interruptable) {
   _write(HIGH, LOW, LOW, HIGH);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   _write(LOW, LOW, HIGH, HIGH);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   _write(LOW, HIGH, HIGH, LOW);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   _write(HIGH, HIGH, LOW, LOW);
-  if (_interrupted()) { return true; }
+  if (interruptable && _interrupted()) { return true; }
   delay(_speedDelay);
   return false;
 }
@@ -83,9 +87,9 @@ void TwoPositionStepper::driveAway() {
   Serial.println("moving away");
   for (int i = 0; i < abs(_distanceFromHome); i++) {
     if (_distanceFromHome > 0) {
-      cwStep();  
+      cwStep(false);  
     } else {
-      ccwStep();
+      ccwStep(false);
     }
   }
   _write(LOW, LOW, LOW, LOW);
@@ -101,9 +105,9 @@ void TwoPositionStepper::driveHome() {
   while(true) {
     Serial.println("moving home");
     if (_distanceFromHome > 0) {
-      interrupted = ccwStep();
+      interrupted = ccwStep(true);
     } else {
-      interrupted = cwStep();
+      interrupted = cwStep(true);
     }
     if (interrupted) {
       Serial.println("interrupted");

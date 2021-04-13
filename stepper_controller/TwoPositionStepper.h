@@ -13,6 +13,8 @@ class TwoPositionStepper {
     void driveAway();
     void driveHome();
 
+    void setDistanceFromHome(int newDistanceFromHome);
+
   private: 
     int _homePin;
     int _pin1;
@@ -26,8 +28,8 @@ class TwoPositionStepper {
 
     void _write(int a, int b, int c, int d);
     bool _interrupted();
-    bool cwStep();
-    bool ccwStep();
+    bool cwStep(bool interruptable);
+    bool ccwStep(bool interruptable);
 };
 
 #endif

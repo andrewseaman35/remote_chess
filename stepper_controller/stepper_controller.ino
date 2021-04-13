@@ -12,7 +12,6 @@
 #define Z_DOWN "down"
 
 const int BAUD = 9600;
-const int INPUT_SIZE = 10;
 
 const int HAND_Z_STEPPER_PIN_1 = 8;
 const int HAND_Z_STEPPER_PIN_2 = 9;
@@ -49,6 +48,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(HAND_Z_TOGGLE_PIN, OUTPUT);
   Serial.begin(BAUD);  // start serial communication at 9600 baud
+  Serial.setTimeout(2);
 }
 
 void handleHandCommand(String position) {
@@ -88,7 +88,9 @@ void loop() {
     String position = Serial.readString();
     stepperId.trim();
     position.trim();
+    Serial.println("STEPPER ID");
     Serial.println(stepperId);
+    Serial.println("POSITION");
     Serial.println(position);
 
     if (stepperId == STEPPER_ID_HAND) {

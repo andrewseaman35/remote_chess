@@ -48,7 +48,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(HAND_Z_TOGGLE_PIN, OUTPUT);
   Serial.begin(BAUD);  // start serial communication at 9600 baud
-  Serial.setTimeout(2);
+  Serial.setTimeout(3);
 }
 
 void handleHandCommand(String position) {

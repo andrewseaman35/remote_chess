@@ -1,0 +1,22 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
+
+        <title>{% block page_title %}Chess{% endblock %}</title>
+        <meta name="description" content="Andrew Seaman's personal website">
+        <meta name="author" content="Andrew Seaman">
+
+        <link rel="icon" type="image/ico" href="/img/favicon.ico"/>
+
+        {% block include_js %}{% endblock %}
+    </head>
+
+    <body id="{% block page_id %}id{% endblock %}" class="{% block body_class %}{% endblock %}">
+        <div class="main-content">
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>

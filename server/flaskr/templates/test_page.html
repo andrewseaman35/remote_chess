@@ -1,0 +1,28 @@
+{% block content %}
+    <h1>Test Page</h1>
+    <div>
+        <input
+            id="raw-input"
+            type="text"
+            placeholder="raw serial input"
+        ></input>
+        <button id="raw-input-submit">Submit</button>
+    </div>
+{% endblock %}
+
+{% block include_js %}
+    <script>
+        document.getElementById('raw-input-submit').addEventListener("click", function() {
+            var rawInput = document.getElementById('raw-input').value;
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == 4 && xhr.status == 200) {
+                    alert(xhr.responseText);
+                }
+            }
+            xhr.open("POST", "/chess_v1/raw_write", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({ command: rawInput }));
+        });
+    </script>
+{% endblock %}

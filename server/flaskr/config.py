@@ -1,0 +1,3 @@
+SERIAL_TIMEOUT = 1
+PORT_NAME = '/dev/cu.usbmodem143101'
+BAUD_RATE = 9600

@@ -10,13 +10,14 @@
         <meta name="author" content="Andrew Seaman">
 
         <link rel="icon" type="image/ico" href="/img/favicon.ico"/>
-
-        {% block include_js %}{% endblock %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     </head>
 
-    <body id="{% block page_id %}id{% endblock %}" class="{% block body_class %}{% endblock %}">
+    <body class="{% block body_class %}{% endblock %}">
         <div class="main-content">
             {% block content %}{% endblock %}
         </div>
+
+        {% block include_js %}{% endblock %}
     </body>
 </html>

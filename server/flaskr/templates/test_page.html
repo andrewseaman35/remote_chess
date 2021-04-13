@@ -1,28 +1,42 @@
+{% extends 'base.html' %}
+
+{% block body_class %}test-page{% endblock %}
+
 {% block content %}
     <h1>Test Page</h1>
     <div>
-        <input
-            id="raw-input"
-            type="text"
-            placeholder="raw serial input"
-        ></input>
-        <button id="raw-input-submit">Submit</button>
+        <h2>Hand</h2>
+        <button class="js-button-command" value="hand:open">Open</button>
+        <button class="js-button-command" value="hand:close">Close</button>
+    </div>
+    <div>
+        <h2>Z</h2>
+        <button class="js-button-command" value="z:up">Up</button>
+        <button class="js-button-command" value="z:down">Down</button>
     </div>
 {% endblock %}
 
 {% block include_js %}
     <script>
-        document.getElementById('raw-input-submit').addEventListener("click", function() {
-            var rawInput = document.getElementById('raw-input').value;
+        function sendRawCommand(command) {
             var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
                 if(xhr.readyState == 4 && xhr.status == 200) {
-                    alert(xhr.responseText);
+                    console.log(xhr.responseText);
                 }
             }
             xhr.open("POST", "/chess_v1/raw_write", true);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(JSON.stringify({ command: rawInput }));
+            xhr.send(JSON.stringify({ command: command }));
+        }
+
+        var commandButtonElements = Array.prototype.slice.call(document.getElementsByClassName('js-button-command'));
+        commandButtonElements.forEach(function(element) {
+            element.addEventListener("click", function(event) {
+                var rawInput = event.currentTarget.value;
+                console.log('Sending command: ' + rawInput);
+                sendRawCommand(rawInput);
+            });
         });
     </script>
 {% endblock %}

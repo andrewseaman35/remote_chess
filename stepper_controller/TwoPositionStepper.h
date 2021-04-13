@@ -2,6 +2,7 @@
 #define TwoPositionStepper_h
 
 #define SPEED_DELAY_SLOW 25
+#define SPEED_DELAY_MEDIUM 2
 
 #include "Arduino.h"
 

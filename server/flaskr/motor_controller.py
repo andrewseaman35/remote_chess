@@ -19,12 +19,13 @@ class MotorController(object):
     def write_read(self, cmd):
         self._arduino.write(bytes(cmd, 'utf-8'))
         time.sleep(0.05)
+        response = []
         data = self._arduino.readline()
         while data:
-            print(data)
+            response.append(data.decode('utf-8').strip())
             data = self._arduino.readline();
 
-        return data
+        return response
 
 
 _instance = MotorController(config.PORT_NAME, config.BAUD_RATE, config.SERIAL_TIMEOUT)

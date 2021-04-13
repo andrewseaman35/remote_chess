@@ -6,6 +6,8 @@
 #define STEPPER_ID_HAND "hand"
 #define STEPPER_ID_Z "z"
 
+#define DEBUG_ID "debug"
+
 #define HAND_OPEN "open"
 #define HAND_CLOSE "close"
 #define Z_UP "up"
@@ -33,16 +35,16 @@ TwoPositionStepper handStepper(
   HAND_MOVEMENT_DISTANCE,
   SPEED_DELAY_SLOW);
 
-const int Z_HOME_PIN = 13;
-const int Z_MOVEMENT_DISTANCE = 15;
+const int Z_HOME_PIN = 6;
+const int Z_MOVEMENT_DISTANCE = -500;
 TwoPositionStepper zStepper(
-  HAND_Z_STEPPER_PIN_1, 
-  HAND_Z_STEPPER_PIN_2, 
-  HAND_Z_STEPPER_PIN_3, 
-  HAND_Z_STEPPER_PIN_4, 
+  2, //  HAND_Z_STEPPER_PIN_1, 
+  3, //  HAND_Z_STEPPER_PIN_2, 
+  4, //  HAND_Z_STEPPER_PIN_3, 
+  5, //  HAND_Z_STEPPER_PIN_4, 
   Z_HOME_PIN,
   Z_MOVEMENT_DISTANCE,
-  SPEED_DELAY_SLOW);
+  SPEED_DELAY_MEDIUM);
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -72,10 +74,10 @@ void handleZCommand(String position) {
   Serial.println("moving z");
   if (position == Z_UP) {
     Serial.println("moving up");
-    handStepper.driveHome();
+    zStepper.driveHome();
   } else if (position == Z_DOWN) {
     Serial.println("moving down");
-    handStepper.driveAway();
+    zStepper.driveAway();
   } else {
     Serial.println("invalid");
   }
@@ -97,6 +99,13 @@ void loop() {
       handleHandCommand(position);
     } else if (stepperId == STEPPER_ID_Z) {
       handleZCommand(position);
+    } else if (stepperId == DEBUG_ID) {
+      int handHome = digitalRead(HAND_HOME_PIN);
+      Serial.println("Hand Home");
+      Serial.println(handHome);
+      int zHome = digitalRead(Z_HOME_PIN);
+      Serial.println("Z Home");
+      Serial.println(zHome);
     }
   }
 }

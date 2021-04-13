@@ -9,12 +9,13 @@ arduino = serial.Serial(port=PORT_NAME, baudrate=BAUD_RATE, timeout=1)
 def write_read(x):
     arduino.write(bytes(x, 'utf-8'))
     time.sleep(0.05)
+    response = []
     data = arduino.readline()
     while data:
-        print(data)
+        response.append(data.decode('utf-8').strip())
         data = arduino.readline();
 
-    return data
+    return '\n'.join(response)
 
 while True:
     num = input("Enter a string: ")

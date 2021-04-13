@@ -40,7 +40,7 @@ void TwoPositionStepper::_write(int a, int b, int c, int d) {
 }
 
 bool TwoPositionStepper::_interrupted() {
-  return !digitalRead(_homePin);
+  return digitalRead(_homePin);
 }
 
 bool TwoPositionStepper::cwStep() {
@@ -77,8 +77,10 @@ bool TwoPositionStepper::ccwStep() {
 
 void TwoPositionStepper::driveAway() {
   if (_position == POSITION_AWAY) {
+    Serial.println("already away");
     return;
   }
+  Serial.println("moving away");
   for (int i = 0; i < abs(_distanceFromHome); i++) {
     if (_distanceFromHome > 0) {
       cwStep();  
@@ -92,16 +94,19 @@ void TwoPositionStepper::driveAway() {
 
 void TwoPositionStepper::driveHome() {
   if (_position == POSITION_HOME) {
+    Serial.println("already home");
     return;
   }
   bool interrupted = false;
   while(true) {
+    Serial.println("moving home");
     if (_distanceFromHome > 0) {
       interrupted = ccwStep();
     } else {
       interrupted = cwStep();
     }
     if (interrupted) {
+      Serial.println("interrupted");
       break;
     }
   }

@@ -14,6 +14,23 @@
         <button class="js-button-command" value="z:up">Up</button>
         <button class="js-button-command" value="z:down">Down</button>
     </div>
+    <div>
+        <h2>Axis Control</h2>
+        <button class="js-printer-command" value="homeXY">Home XY</button>
+        <button class="js-printer-command" value="homeZ">Home Z</button>
+        <div>
+            <h3>Relative move</h3>
+            <div>
+                <label for="relative-x">X:</label>
+                <input type="number" id="relative-x" name="relative-x">
+                <label for="relative-y">Y:</label>
+                <input type="number" id="relative-y" name="relative-y">
+                <label for="relative-x">Z:</label>
+                <input type="number" id="relative-z" name="relative-z">
+            </div>
+            <button class="js-printer-move" value='relative'>Move relative</button>
+        </div>
+    </div>
 {% endblock %}
 
 {% block include_js %}
@@ -30,12 +47,56 @@
             xhr.send(JSON.stringify({ command: command }));
         }
 
+        function sendPrinterTestCommand(data) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(xhr.responseText);
+                }
+            }
+            xhr.open("POST", "/chess_v1/printer_action_test", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(data));
+        }
+
         var commandButtonElements = Array.prototype.slice.call(document.getElementsByClassName('js-button-command'));
         commandButtonElements.forEach(function(element) {
             element.addEventListener("click", function(event) {
                 var rawInput = event.currentTarget.value;
                 console.log('Sending command: ' + rawInput);
                 sendRawCommand(rawInput);
+            });
+        });
+
+        var printerButtonElements = Array.prototype.slice.call(document.getElementsByClassName('js-printer-command'));
+        printerButtonElements.forEach(function(element) {
+            element.addEventListener("click", function(event) {
+                var action = event.currentTarget.value;
+                console.log('Sending action: ' + action);
+                sendPrinterTestCommand({'action': action});
+            });
+        });
+
+        var printerMoveElements = Array.prototype.slice.call(document.getElementsByClassName('js-printer-move'));
+        printerMoveElements.forEach(function(element) {
+            element.addEventListener("click", function(event) {
+                var actionType = event.currentTarget.value;
+                const action = actionType + 'Move';
+                console.log('Sending action: ' + action);
+                var xValue = document.getElementById(actionType + '-x').value;
+                var yValue = document.getElementById(actionType + '-y').value;
+                var zValue = document.getElementById(actionType + '-z').value;
+                var data = {'action': action};
+                if (xValue != null) {
+                    data.x = Number(xValue);
+                }
+                if (yValue != null) {
+                    data.y = Number(yValue);
+                }
+                if (zValue != null) {
+                    data.z = Number(zValue);
+                }
+                sendPrinterTestCommand(data);
             });
         });
     </script>

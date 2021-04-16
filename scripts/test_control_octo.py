@@ -1,6 +1,5 @@
 import json
 
-import boto3
 import requests
 
 
@@ -23,7 +22,33 @@ class RunGCodeTest():
             'Content-Type': 'application/json',
         })
 
-    def moveTo(self, x=None, y=None, z=None):
+    def homeAll(self):
+        print("Homing all")
+        return self.session.post(octoprint_url('api/printer/printhead/home'))
+
+    def home(self, x=False, y=False, z=False):
+        data = {
+            'command': 'home',
+            'axes': [],
+        }
+        if x: data['axes'].append('x')
+        if y: data['axes'].append('y')
+        if z: data['axes'].append('z')
+        print(f"Homing: {data}")
+        return self.session.post(octoprint_url('api/printer/printhead'), data=json.dumps(data))
+
+    def moveToRelative(self, x=None, y=None, z=None):
+        data = {'relative': True, 'command': "jog"}
+        if x is not None:
+            data['x'] = x
+        if y is not None:
+            data['y'] = y
+        if z is not None:
+            data['z'] = z
+        print(data)
+        return self.session.post(octoprint_url('api/printer/printhead'), data=json.dumps(data))
+
+    def moveToAbsolute(self, x=None, y=None, z=None):
         data = {'absolute': True, 'command': "jog"}
         if x is not None:
             data['x'] = x

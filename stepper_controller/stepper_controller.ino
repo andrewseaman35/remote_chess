@@ -6,6 +6,8 @@
 #define STEPPER_ID_HAND "hand"
 #define STEPPER_ID_Z "z"
 
+#define HANDSHAKE "heybuddy"
+#define HANDSHAKE_ACK "eyyy"
 #define DEBUG_ID "debug"
 
 #define HAND_OPEN "open"
@@ -90,15 +92,11 @@ void loop() {
     String position = Serial.readString();
     stepperId.trim();
     position.trim();
-    Serial.println("STEPPER ID");
     Serial.println(stepperId);
-    Serial.println("POSITION");
     Serial.println(position);
-
-    if (stepperId == STEPPER_ID_HAND) {
-      handleHandCommand(position);
-    } else if (stepperId == STEPPER_ID_Z) {
-      handleZCommand(position);
+    Serial.println("ASDF");
+    if (stepperId == HANDSHAKE) {
+      Serial.println(HANDSHAKE_ACK);
     } else if (stepperId == DEBUG_ID) {
       int handHome = digitalRead(HAND_HOME_PIN);
       Serial.println("Hand Home");
@@ -106,6 +104,16 @@ void loop() {
       int zHome = digitalRead(Z_HOME_PIN);
       Serial.println("Z Home");
       Serial.println(zHome);
+    } else {
+      Serial.println("STEPPER ID");
+      Serial.println(stepperId);
+      Serial.println("POSITION");
+      Serial.println(position);      
+      if (stepperId == STEPPER_ID_HAND) {
+        handleHandCommand(position);
+      } else if (stepperId == STEPPER_ID_Z) {
+        handleZCommand(position);
+      }
     }
   }
 }

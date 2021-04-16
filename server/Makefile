@@ -7,4 +7,4 @@ venv: requirements.txt
 start_local:
 	export FLASK_APP=flaskr; \
 	export FLASK_ENV=development; \
-	$(VENV) flask run
+	$(VENV) flask run --no-reload

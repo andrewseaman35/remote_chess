@@ -1,6 +1,6 @@
 from flask import (Blueprint, render_template, request, Response, jsonify)
 
-from . import motor_controller
+from .motor_controller import MotorController
 
 bp = Blueprint('chess_v1', __name__, url_prefix='/chess_v1')
 
@@ -12,5 +12,5 @@ def test():
 @bp.route('/raw_write', methods=['POST'])
 def raw_write():
     json_data = request.get_json()
-    response = motor_controller.MotorController.instance().write_read(json_data['command'])
+    response = MotorController.instance().write_read(json_data['command'])
     return jsonify({'data': response})

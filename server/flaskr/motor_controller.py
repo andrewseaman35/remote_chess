@@ -112,7 +112,6 @@ class MotorController(object):
         logger.error(msg)
         raise Exception(msg)
 
-
     def write_read(self, cmd):
         self._serial.write(bytes(cmd, 'utf-8'))
         time.sleep(0.05)

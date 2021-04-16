@@ -5,7 +5,7 @@ import sys
 from flask import Flask
 
 from .motor_controller import MotorController
-from . import config
+from .config import Configuration
 
 
 def create_app(test_config=None):
@@ -46,8 +46,8 @@ def create_app(test_config=None):
 
     # TODO: make this async
     MotorController.instance().configure(
-        baudrate=config.BAUD_RATE,
-        timeout=config.SERIAL_TIMEOUT,
+        baudrate=Configuration.config().get('serial_baudrate'),
+        timeout=Configuration.config().get('serial_timeout'),
     )
 
     logging.info("App initialization complete")

@@ -59,6 +59,9 @@ class RunGCodeTest():
         print(data)
         return self.session.post(octoprint_url('api/printer/printhead'), data=json.dumps(data))
 
+    def printerProfile(self):
+        return self.session.get(octoprint_url('api/printerprofiles/_default'))
+
     def run(self):
         import pdb; pdb.set_trace()
 

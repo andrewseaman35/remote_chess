@@ -93,8 +93,6 @@ void loop() {
     stepperId.trim();
     position.trim();
     Serial.println(stepperId);
-    Serial.println(position);
-    Serial.println("ASDF");
     if (stepperId == HANDSHAKE) {
       Serial.println(HANDSHAKE_ACK);
     } else if (stepperId == DEBUG_ID) {

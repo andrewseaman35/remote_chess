@@ -30,6 +30,36 @@
             </div>
             <button class="js-printer-move" value='relative'>Move relative</button>
         </div>
+        <div>
+            <h3>Absolute move</h3>
+            <div>
+                <label for="absolute-x">X:</label>
+                <input type="number" id="absolute-x" name="absolute-x">
+                <label for="absolute-y">Y:</label>
+                <input type="number" id="absolute-y" name="absolute-y">
+                <label for="absolute-x">Z:</label>
+                <input type="number" id="absolute-z" name="absolute-z">
+            </div>
+            <button class="js-printer-move" value='absolute'>Move absolute</button>
+        </div>
+        <div>
+            <h3>Move to space</h3>
+            <div>
+                <label for="space-input">Space:</label>
+                <input id="space-input" name="space-input">
+            </div>
+            <button id="js-printer-move-to-space" value='relative'>Move to space</button>
+        </div>
+        <div>
+            <h3>Perform move</h3>
+            <div>
+                <label for="starting-input">Starting space:</label>
+                <input id="starting-input" name="starting-input">
+                <label for="ending-input">Ending space:</label>
+                <input id="ending-input" name="ending-input">
+            </div>
+            <button id="js-printer-perform-move" value='relative'>Perform move</button>
+        </div>
     </div>
 {% endblock %}
 
@@ -98,6 +128,27 @@
                 }
                 sendPrinterTestCommand(data);
             });
+        });
+
+        document.getElementById('js-printer-move-to-space').addEventListener('click', function(event) {
+            var spaceValue = document.getElementById('space-input').value;
+            var data = {
+                'action': 'moveToSpace',
+                'space': spaceValue,
+            };
+            console.log(data)
+            sendPrinterTestCommand(data);
+        });
+        document.getElementById('js-printer-perform-move').addEventListener('click', function(event) {
+            var staringSpaceValue = document.getElementById('starting-input').value;
+            var endingSpaceValue = document.getElementById('ending-input').value;
+            var data = {
+                'action': 'movePiece',
+                'starting_space': staringSpaceValue,
+                'ending_space': endingSpaceValue,
+            };
+            console.log(data)
+            sendPrinterTestCommand(data);
         });
     </script>
 {% endblock %}

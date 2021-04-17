@@ -86,18 +86,21 @@ class MotorController(object):
                 time.sleep(HANDSHAKE_POLL_SLEEP)
         return False
 
-    def configure(self, baudrate, timeout):
+    def configure(self, port=None, baudrate=None, timeout=None):
         logger.info("# Starting MotorController configure #")
         if baudrate is not None:
             self.baudrate = baudrate
         if timeout is not None:
             self.timeout = timeout
 
-        self.port = self._find_port()
-        if not self.port:
-            msg = "Failed to find a port that is worthy"
-            logger.error(msg)
-            raise Exception(msg)
+        if port is not None:
+            self.port = port
+        else:
+            self.port = self._find_port()
+            if not self.port:
+                msg = "Failed to find a port that is worthy"
+                logger.error(msg)
+                raise Exception(msg)
 
         logger.info(f"--> MotorController: port={self.port}, baudrate={self.baudrate}, timeout={self.timeout}")
         self._serial = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
@@ -122,6 +125,18 @@ class MotorController(object):
             response.append(data)
         print(response)
         return response
+
+    def hand_open(self):
+        return self.write_read('hand:open')
+
+    def hand_close(self):
+        return self.write_read('hand:close')
+
+    def z_down(self):
+        return self.write_read('z:down')
+
+    def z_up(self):
+        return self.write_read('z:up')
 
 
 _instance = MotorController()

@@ -127,15 +127,19 @@ class MotorController(object):
         return response
 
     def hand_open(self):
+        logger.info('Performing hand:open')
         return self.write_read('hand:open')
 
     def hand_close(self):
+        logger.info('Performing hand:close')
         return self.write_read('hand:close')
 
     def z_down(self):
+        logger.info('Performing z:down')
         return self.write_read('z:down')
 
     def z_up(self):
+        logger.info('Performing z:up')
         return self.write_read('z:up')
 
 

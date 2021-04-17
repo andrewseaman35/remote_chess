@@ -25,6 +25,7 @@ class ChessController(object):
         axis_controller.move_to_space(ending_space)
         time.sleep(5)
         motor_controller.z_down()
+        time.sleep(5)
         motor_controller.hand_open()
         time.sleep(5)
         motor_controller.hand_close()

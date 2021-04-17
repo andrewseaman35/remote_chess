@@ -28,9 +28,9 @@ class ChessController(object):
         time.sleep(5)
         motor_controller.hand_open()
         time.sleep(5)
-        motor_controller.hand_close()
-        time.sleep(5)
         motor_controller.z_up()
+        time.sleep(5)
+        motor_controller.hand_close()
 
 
 _instance = ChessController()

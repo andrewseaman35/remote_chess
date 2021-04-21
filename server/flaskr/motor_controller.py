@@ -4,7 +4,8 @@ import sys
 import glob
 import logging
 
-from . import config
+from .config import Configuration
+from .exceptions import MotorControllerException
 
 CONNECT_TIMEOUT = 5  # seconds
 CONNECT_POLL_SLEEP = 0.05  # seconds
@@ -45,13 +46,56 @@ def serial_ports():
 
 class MotorController(object):
     def __init__(self):
-        self.port = None
-        self.baudrate = None
-        self.timeout = None
+        self._serial = None  # set this during `initialize_controller`
+        self._initialized = False
 
     @classmethod
     def instance(cls):
         return _instance
+
+    def initialize_controller(self):
+        self._initialized = False
+        port = Configuration.config().get('arduino_port')
+        baudrate = Configuration.config().get('serial_baudrate')
+        timeout = Configuration.config().get('serial_timeout')
+
+        logger.info(f"starting initialization port={port} baud={baudrate} timeout={timeout}")
+
+        checks = {
+            'serial': {
+                'status': 'NOT OK',
+                'message': '',
+            }
+        }
+        try:
+            self._serial = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+        except serial.serialutil.SerialException as e:
+            logger.info("failed to open port")
+            checks['serial']['status'] = 'NOT OK'
+            checks['serial']['message'] = str(e)
+            return checks
+
+        for i in range(CONNECT_POLL_ATTEMPTS):
+            if self._serial.is_open:
+                logger.info("serial port opened successfully")
+                break
+            time.sleep(CONNECT_POLL_SLEEP)
+
+        if not self._serial.is_open:
+            checks['serial']['status'] = 'NOT OK'
+            checks['serial']['message'] = 'could not open connection to serial port'
+            logger.info("failed to open connection to port")
+        else:
+            if not self._confirm_with_handshake(self._serial):
+                checks['serial']['status'] = 'NOT OK'
+                checks['serial']['message'] = 'no ACK received'
+                logger.info("failed to receive ACK")
+            else:
+                checks['serial']['status'] = 'OK'
+                self._initialized = True
+                logger.info("initialization complete")
+
+        return checks
 
     def _find_port(self):
         logger.info("Finding a worthy port")
@@ -74,10 +118,11 @@ class MotorController(object):
         return None
 
     def _confirm_with_handshake(self, serial):
+        timeout = Configuration.config().get('serial_timeout')
         serial.write(bytes(f"{HANDSHAKE}:", 'utf-8'))
         time.sleep(1)
         data = serial.readline()
-        attempts = int(HANDSHAKE_TIMEOUT / (HANDSHAKE_POLL_SLEEP + self.timeout))
+        attempts = int(HANDSHAKE_TIMEOUT / (HANDSHAKE_POLL_SLEEP + timeout))
         for i in range(attempts):
             data = serial.readline().decode('utf-8').strip()
             if data == HANDSHAKE_ACK:
@@ -86,36 +131,42 @@ class MotorController(object):
                 time.sleep(HANDSHAKE_POLL_SLEEP)
         return False
 
-    def configure(self, port=None, baudrate=None, timeout=None):
-        logger.info("# Starting MotorController configure #")
-        if baudrate is not None:
-            self.baudrate = baudrate
-        if timeout is not None:
-            self.timeout = timeout
+    # TODO: not sure how port detection will play with the rest of the flow yet
+    # def configure(self, port=None, baudrate=None, timeout=None):
+    #     # TODO: should we just set port, baudrate, and timeout in config
+    #     # and read directly from there?
+    #     logger.info("# Starting MotorController configure #")
+    #     if baudrate is not None:
+    #         self.baudrate = baudrate
+    #     if timeout is not None:
+    #         self.timeout = timeout
 
-        if port is not None:
-            self.port = port
-        else:
-            self.port = self._find_port()
-            if not self.port:
-                msg = "Failed to find a port that is worthy"
-                logger.error(msg)
-                raise Exception(msg)
+    #     if port is not None:
+    #         self.port = port
+    #         return
+    #     else:
+    #         self.port = self._find_port()
+    #         if not self.port:
+    #             msg = "Failed to find a port that is worthy"
+    #             logger.error(msg)
+    #             raise Exception(msg)
 
-        logger.info(f"--> MotorController: port={self.port}, baudrate={self.baudrate}, timeout={self.timeout}")
-        self._serial = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
-        # Serial may not open right away.. give it a little bit
-        for i in range(CONNECT_POLL_ATTEMPTS):
-            if self._serial.is_open:
-                logger.info(f"    Connected to {self.port}!")
-                return
-            time.sleep(CONNECT_POLL_SLEEP)
+    #     logger.info(f"--> MotorController: port={self.port}, baudrate={self.baudrate}, timeout={self.timeout}")
+    #     self._serial = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
+    #     # Serial may not open right away.. give it a little bit
+    #     for i in range(CONNECT_POLL_ATTEMPTS):
+    #         if self._serial.is_open:
+    #             logger.info(f"    Connected to {self.port}!")
+    #             return
+    #         time.sleep(CONNECT_POLL_SLEEP)
 
-        msg = f"Failed to connect to {self.port}"
-        logger.error(msg)
-        raise Exception(msg)
+    #     msg = f"Failed to connect to {self.port}"
+    #     logger.error(msg)
+    #     raise Exception(msg)
 
     def write_read(self, cmd):
+        if not self._initialized:
+            raise MotorControllerException('controller not initialized')
         self._serial.write(bytes(cmd, 'utf-8'))
         time.sleep(0.05)
         response = []
@@ -123,7 +174,6 @@ class MotorController(object):
         while data:
             data = self._serial.readline().decode('utf-8').strip()
             response.append(data)
-        print(response)
         return response
 
     def hand_open(self):

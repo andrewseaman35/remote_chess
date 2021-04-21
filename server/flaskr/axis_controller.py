@@ -6,6 +6,7 @@ import funcy
 import requests
 
 from .config import Configuration
+from .exceptions import AxisControllerException, OctoPrintException
 
 PRINTER_PROFILE_DEFAULT_ID = '_default'  # set by OctoPrint
 
@@ -55,7 +56,7 @@ class AxisController(object):
         except ValueError:
             raise Exception('need valid config value for z_axis_height')
 
-        self._set_stepper_timeout()
+        # self._initalize_printer()
 
         self.homed = {
             'x': False,
@@ -81,6 +82,75 @@ class AxisController(object):
     @property
     def has_been_homed(self):
         return self.homed['x'] and self.homed['y'] and self.homed['z']
+
+    # START Initialization methods #
+    def get_octoprint_server_status(self):
+        checks = {
+            'version': {
+                'status': 'NOT OK',
+                'message': '',
+            },
+            'connection': {
+                'status': 'NOT OK',
+                'message': '',
+            },
+            'job': {
+                'status': 'NOT OK',
+                'message': '',
+            }
+        }
+        config = Configuration.config()
+
+        def not_ok_message(response, check):
+            return f"received {response.status_code}, {response.reason} checking OctoPrint {check}"
+
+        try:
+            version_response = self.session.get(self.octoprint_url('/api/version'), timeout=10)
+        except requests.exceptions.ConnectionError:
+            checks['version']['status'] = 'NOT OK'
+            checks['version']['message'] = 'failed to connect, is OctoPrint running?'
+            return checks
+
+        if version_response.ok:
+            checks['version']['status'] = 'OK'
+        else:
+            checks['version']['status'] = 'NOT OK'
+            checks['version']['message'] = not_ok_message(version_response, 'version')
+            return checks
+
+        connection_response = self.session.get(self.octoprint_url('/api/connection'))
+        if connection_response.ok:
+            connection_json = connection_response.json()
+            is_operational = connection_json['current']['state'] == 'Operational'
+            if is_operational:
+                checks['connection']['status'] = 'OK'
+            else:
+                checks['connection']['status'] = 'NOT OK'
+                checks['connection']['message'] = f"received non-operational state {connection_json['current']['state']}"
+        else:
+            checks['connection']['status'] = 'NOT OK'
+            checks['connection']['message'] = not_ok_message(connection_response, 'connection')
+            return checks
+
+        job_response = self.session.get(self.octoprint_url('/api/job'))
+        if job_response.ok:
+            job_status = job_response.json()['state']
+            is_operational = job_status == 'Operational'
+            if is_operational:
+                checks['job']['status'] = 'OK'
+                checks['job']['message'] = ''
+            else:
+                checks['job']['status'] = 'NOT OK'
+                checks['job']['message'] = f"received non-operational state {job_status}"
+        else:
+            checks['job']['status'] = 'NOT OK'
+            checks['job']['message'] = not_ok_message(job_response, 'job')
+
+        return checks
+
+
+    # END Initialization methods #
+
 
     def _initalize_printer(self):
         # this is only really necessary for testing on the Ender since the z axis can slide down
@@ -166,7 +236,7 @@ class AxisController(object):
 
     def move_to_space(self, space):
         if not (self.homed['x'] and self.homed['y']):
-            raise Exception("must home x and y first")
+            raise AxisControllerException("must home x and y first")
 
         data = {'absolute': True, 'command': 'job'}
         parsed_space = parse_space_position(space)

@@ -48,13 +48,6 @@ def create_app(test_config=None):
     from . import chess_v1
     app.register_blueprint(chess_v1.bp)
 
-    # TODO: make this async
-    MotorController.instance().configure(
-        port=Configuration.config().get('arduino_port'),
-        baudrate=Configuration.config().get('serial_baudrate'),
-        timeout=Configuration.config().get('serial_timeout'),
-    )
-
     logging.info("App initialization complete")
 
     return app

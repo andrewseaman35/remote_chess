@@ -3,6 +3,8 @@ import json
 import logging
 import os
 
+from .exceptions import InvalidConfigurationException
+
 CONFIG_DIRECTORY = os.path.relpath(os.path.join('flaskr', 'config'))
 
 DEFAULT_CONFIG_FILENAME = 'default.json'
@@ -39,13 +41,13 @@ class Configuration(object):
         if not os.path.exists(self.config_directory) or not os.path.isdir(self.config_directory):
             msg = f"config directory does not exist: {self.config_directory}"
             logger.error(msg)
-            raise Exception(msg)
+            raise InvalidConfigurationException(msg)
 
         self.default_filepath = os.path.join(self.config_directory, DEFAULT_CONFIG_FILENAME)
         if not os.path.exists(self.default_filepath):
             msg = f"default config file does not exist: {self.default_filepath}"
             logger.error(msg)
-            raise Exception(msg)
+            raise InvalidConfigurationException(msg)
 
         self.user_filepath = os.path.join(self.config_directory, USER_CONFIG_FILENAME)
         self.user_filepath_exists = True
@@ -61,6 +63,22 @@ class Configuration(object):
     # TODO: dict-like
     def get(self, key):
         return self._config[key]
+
+    def _validate_config_value(self, key, value):
+        if not key:
+            raise InvalidConfigurationException('key cannot be null')
+        if not value:
+            raise InvalidConfigurationException('value cannot be null')
+        if key not in self._default_config:
+            raise InvalidConfigurationException('invalid configuration key')
+
+    def set(self, key, value):
+        self._validate_config_value(key, value)
+        user_config = self._user_config.copy()
+        user_config[key] = value
+        with open(self.user_filepath, 'w') as f:
+            f.write(json.dumps(user_config, sort_keys=True, indent=4))
+        logger.info(f"config set: {key}={value}")
 
     @property
     def _default_config(self):

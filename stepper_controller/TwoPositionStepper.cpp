@@ -12,8 +12,9 @@ const int HOME_BACKOFF = 5; // cycles to back off of home switch
  * If `distanceFromHome` is positive, drive CW to move away from home, else drive CCW.
  *
  * `speedDelay`: microsecond delay between stepper motor steps (~8000 for "normal" speed)
+ * `holdAtHome`: true to leave motors on after driving home
  */
-TwoPositionStepper::TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, int homePin, int distanceFromHome, int speedDelay) {
+TwoPositionStepper::TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, int homePin, int distanceFromHome, int speedDelay, bool holdAtHome) {
   _pin1 = pin1;
   _pin2 = pin2;
   _pin3 = pin3;
@@ -22,6 +23,7 @@ TwoPositionStepper::TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, i
   _speedDelay = speedDelay;
   _homePin = homePin;
   _distanceFromHome = distanceFromHome;
+  _holdAtHome = holdAtHome;
 
   pinMode(_pin1, OUTPUT);
   pinMode(_pin2, OUTPUT);
@@ -114,6 +116,8 @@ void TwoPositionStepper::driveHome() {
       break;
     }
   }
-  _write(LOW, LOW, LOW, LOW);
+  if (!_holdAtHome) {
+    _write(LOW, LOW, LOW, LOW); 
+  }
   _position = POSITION_HOME;
 }

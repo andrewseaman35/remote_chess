@@ -8,7 +8,7 @@
 
 class TwoPositionStepper {
   public:
-    TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, int homePin, int distanceFromHome, int speedDelay);
+    TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, int homePin, int distanceFromHome, int speedDelay, bool holdAtHome);
 
     void driveAway();
     void driveHome();
@@ -25,6 +25,7 @@ class TwoPositionStepper {
     int _speedDelay;
     int _position;
     int _distanceFromHome;
+    bool _holdAtHome;
 
     void _write(int a, int b, int c, int d);
     bool _interrupted();

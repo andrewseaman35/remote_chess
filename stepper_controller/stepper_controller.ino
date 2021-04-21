@@ -35,7 +35,8 @@ TwoPositionStepper handStepper(
   HAND_Z_STEPPER_PIN_4, 
   HAND_HOME_PIN,
   HAND_MOVEMENT_DISTANCE,
-  SPEED_DELAY_SLOW);
+  SPEED_DELAY_SLOW,
+  true);
 
 const int Z_HOME_PIN = 6;
 const int Z_MOVEMENT_DISTANCE = -500;
@@ -46,7 +47,8 @@ TwoPositionStepper zStepper(
   5, //  HAND_Z_STEPPER_PIN_4, 
   Z_HOME_PIN,
   Z_MOVEMENT_DISTANCE,
-  SPEED_DELAY_MEDIUM);
+  SPEED_DELAY_MEDIUM,
+  false);
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);

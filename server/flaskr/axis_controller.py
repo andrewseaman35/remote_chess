@@ -82,13 +82,17 @@ class AxisController(object):
     def has_been_homed(self):
         return self.homed['x'] and self.homed['y'] and self.homed['z']
 
-    def _set_stepper_timeout(self):
+    def _initalize_printer(self):
         # this is only really necessary for testing on the Ender since the z axis can slide down
         # if the steppers are disabled
+        config = Configuration.config()
         res = self.session.post(
             self.octoprint_url("/api/printer/command"),
             data=json.dumps({
-                'command': "M84 S300"
+                'commands': [
+                    f"M84 S{config.get('printer_stepper_timeout')}",  # set stepper timeout
+                    "M107",  # disable extruder fan
+                ]
             })
         )
         print (res)
@@ -156,7 +160,7 @@ class AxisController(object):
             data['y'] = y
         if z is not None:
             data['z'] = z
-        data['speed'] = 1000
+        data['speed'] = Configuration.config().get('printhead_speed')
         logger.info(data)
         return self.session.post(self.printhead_url, data=json.dumps(data))
 
@@ -183,7 +187,7 @@ class AxisController(object):
             data['y'] = y
         if z is not None:
             data['z'] = z
-        data['speed'] = 1000
+        data['speed'] = Configuration.config().get('printhead_speed')
         print(data)
         # I think we'll have to calculate how long we think this will take and wait that long -__-
         # No support for polling position through octoprint and arbitrary commands return 204 no content

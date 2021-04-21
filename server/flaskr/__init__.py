@@ -3,6 +3,7 @@ import logging
 import sys
 
 from flask import Flask
+from flask_cors import CORS
 
 from .motor_controller import MotorController
 from .config import Configuration
@@ -14,6 +15,9 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='dev',
     )
+
+    cors = CORS(app)
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     # configure logging
     root = logging.getLogger()

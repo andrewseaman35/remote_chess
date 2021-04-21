@@ -6,11 +6,11 @@
 const int HOME_BACKOFF = 5; // cycles to back off of home switch
 
 /*
- * Interface to drive a stepper motor that has two allowable positions. Motor can either be at "home" 
+ * Interface to drive a stepper motor that has two allowable positions. Motor can either be at "home"
  * or "away". The "home" position is set by driving towards home until the pin at `homePin` is triggered.
  * Once "home", the "away" position is set by driving away from home for `distanceFromHome` cycles.
  * If `distanceFromHome` is positive, drive CW to move away from home, else drive CCW.
- * 
+ *
  * `speedDelay`: microsecond delay between stepper motor steps (~8000 for "normal" speed)
  */
 TwoPositionStepper::TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, int homePin, int distanceFromHome, int speedDelay) {
@@ -28,7 +28,7 @@ TwoPositionStepper::TwoPositionStepper(int pin1, int pin2, int pin3, int pin4, i
   pinMode(_pin3, OUTPUT);
   pinMode(_pin4, OUTPUT);
   pinMode(_homePin, INPUT);
-  
+
   _write(LOW, LOW, LOW, LOW);
 }
 
@@ -87,7 +87,7 @@ void TwoPositionStepper::driveAway() {
   Serial.println("moving away");
   for (int i = 0; i < abs(_distanceFromHome); i++) {
     if (_distanceFromHome > 0) {
-      cwStep(false);  
+      cwStep(false);
     } else {
       ccwStep(false);
     }

@@ -46,7 +46,7 @@ def create_app(test_config=None):
 
     # TODO: make this async
     MotorController.instance().configure(
-        port = Configuration.config().get('arduino_port'),
+        port=Configuration.config().get('arduino_port'),
         baudrate=Configuration.config().get('serial_baudrate'),
         timeout=Configuration.config().get('serial_timeout'),
     )

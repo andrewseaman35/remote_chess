@@ -1,9 +1,13 @@
 {
+    "arduino_port": null,
     "serial_timeout": 0.5,
     "serial_baudrate": 9600,
     "z_axis_height": 50,
     "octoprint_api_key": "",
     "octoprint_ip_address": "",
+    "printer_stepper_timeout": 600,
+    "printhead_x_offset": 0,
+    "printhead_z_offset": 100,
     "board_x_offset": 10,
     "board_y_offset": 10,
     "board_width": 210,

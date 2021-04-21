@@ -49,6 +49,14 @@ class AxisController(object):
             'X-Api-Key': Configuration.config().get('octoprint_api_key'),
             'Content-Type': 'application/json',
         })
+
+        try:
+            int(Configuration.config().get('z_axis_height'))
+        except ValueError:
+            raise Exception('need valid config value for z_axis_height')
+
+        self._set_stepper_timeout()
+
         self.homed = {
             'x': False,
             'y': False,
@@ -74,6 +82,17 @@ class AxisController(object):
     def has_been_homed(self):
         return self.homed['x'] and self.homed['y'] and self.homed['z']
 
+    def _set_stepper_timeout(self):
+        # this is only really necessary for testing on the Ender since the z axis can slide down
+        # if the steppers are disabled
+        res = self.session.post(
+            self.octoprint_url("/api/printer/command"),
+            data=json.dumps({
+                'command': "M84 S300"
+            })
+        )
+        print (res)
+
     def _calculate_x_from_file(self, file):
         file_index = file_to_index(file)
         printer_profile = self.printer_profile()
@@ -84,7 +103,9 @@ class AxisController(object):
         board_x_padding = ((config.get('board_width') - (config.get('space_width') * NUM_FILES)) / 2)
         board_left_edge = board_x_offset + board_x_padding
         space_edge = board_left_edge + int(config.get('space_width') * file_index)
-        return space_edge + (config.get('space_width') / 2)
+        space_center = space_edge + (config.get('space_width') / 2)
+        x_position = space_center - config.get('printhead_x_offset')
+        return x_position
 
     def _calculate_y_from_rank(self, rank):
         rank_index = rank_to_index(rank)
@@ -97,8 +118,9 @@ class AxisController(object):
         board_far_edge = board_y_offset + board_y_padding
         space_edge = board_far_edge + int(config.get('space_depth') * rank_index)
 
-        final_shift = space_edge + (config.get('space_depth') / 2)
-        return final_shift
+        space_center = space_edge + (config.get('space_depth') / 2)
+        y_position = space_center - config.get('printhead_y_offset')
+        return y_position
 
     @funcy.memoize
     def printer_profile(self, profile_id=PRINTER_PROFILE_DEFAULT_ID):
@@ -147,13 +169,13 @@ class AxisController(object):
         data = {
             'x': self._calculate_x_from_file(parsed_space['file']),
             'y': self._calculate_y_from_rank(parsed_space['rank']),
-            'z': 50,
+            'z': Configuration.config().get('z_axis_height'),
         }
         return self.move_to_absolute(**data)
 
     def move_to_absolute(self, x=None, y=None, z=None):
-        if not self.has_been_homed:
-            raise Exception('not homed, homie')
+        # if not self.has_been_homed:
+        #     raise Exception('not homed, homie')
         data = {'absolute': True, 'command': "jog"}
         if x is not None:
             data['x'] = x
@@ -163,6 +185,10 @@ class AxisController(object):
             data['z'] = z
         data['speed'] = 1000
         print(data)
+        # I think we'll have to calculate how long we think this will take and wait that long -__-
+        # No support for polling position through octoprint and arbitrary commands return 204 no content
+        # So that means we'll have to keep track of current position? Oof, maybe we can just wait longer than
+        # we'll always need, since this is a proof of concept and all...
         return self.session.post(self.printhead_url, data=json.dumps(data))
 
 

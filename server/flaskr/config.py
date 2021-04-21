@@ -1,4 +1,4 @@
-import functools
+import funcy
 import json
 import logging
 import os
@@ -10,6 +10,26 @@ USER_CONFIG_FILENAME = 'user.json'
 
 
 logger = logging.getLogger(__name__)
+
+"""
+    "arduino_port": null,             # if null, attempt to detect port automatically, else use defined port
+    "serial_timeout": 0.5,            # timeout for serial comms with arduino
+    "serial_baudrate": 9600,          # baudrate for arduino
+    "octoprint_api_key": "",          # octoprint api key
+    "octoprint_ip_address": "",       # local ip of octopi instance
+    "printer_stepper_timeout": 600,   # printer timeout to disable steppers (seconds)
+    "printhead_x_offset": 0,          # (printer only), x offset between printer nozzle and hand center
+                                      #    positive value means hand is in positive x direction (towards right) of head
+    "printhead_z_offset": 100,        # (printer only), y offset between printer nozzle and hand center
+                                      #    positive value means hand is in positive y direction (towards back) of head
+    "z_axis_height": 50,              # (printer only), height of z axis
+    "board_x_offset": 10,             # mm between left side of print bed and board
+    "board_y_offset": 10,             # mm between front side of print bed and board
+    "board_width": 210,               # x axis length of board in mm
+    "board_depth": 210,               # y axis length of board in mm
+    "space_width": 24,                # x axis length of space
+    "space_depth": 24                 # y axis length of space
+"""
 
 
 class Configuration(object):
@@ -57,6 +77,7 @@ class Configuration(object):
         except Exception as e:
             logger.warning("encountered error while loading user config")
             logger.warning(e)
+            raise e
         return {}
 
     @property

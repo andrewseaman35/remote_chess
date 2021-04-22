@@ -5,7 +5,7 @@
     "z_axis_height": 97,
     "octoprint_api_key": "",
     "octoprint_ip_address": "",
-    "printer_stepper_timeout": 600,
+    "printer_stepper_timeout": 800,
     "printhead_x_offset": -36,
     "printhead_y_offset": -70,
     "printhead_speed": 4000,

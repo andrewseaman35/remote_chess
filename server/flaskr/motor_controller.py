@@ -46,15 +46,21 @@ def serial_ports():
 
 class MotorController(object):
     def __init__(self):
-        self._serial = None  # set this during `initialize_controller`
+        self._serial = None
         self._initialized = False
 
     @classmethod
     def instance(cls):
         return _instance
 
-    def initialize_controller(self):
-        self._initialized = False
+    def initialize(self):
+        self._serial = self.get_serial()
+        if self._serial is None:
+            return False, 'failed to open serial connection'
+        self._initialized = True
+        return True, ''
+
+    def get_controller_serial_status(self):
         port = Configuration.config().get('arduino_port')
         baudrate = Configuration.config().get('serial_baudrate')
         timeout = Configuration.config().get('serial_timeout')
@@ -62,17 +68,15 @@ class MotorController(object):
         logger.info(f"starting initialization port={port} baud={baudrate} timeout={timeout}")
 
         checks = {
+            'initialized': self._initialized,
             'serial': {
                 'status': 'NOT OK',
                 'message': '',
             }
         }
-        try:
-            self._serial = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
-        except serial.serialutil.SerialException as e:
-            logger.info("failed to open port")
-            checks['serial']['status'] = 'NOT OK'
-            checks['serial']['message'] = str(e)
+        if not self._initialized:
+            checks['serial']['message'] = "serial port not initialized"
+            logger.info("serial port not initialized")
             return checks
 
         for i in range(CONNECT_POLL_ATTEMPTS):
@@ -92,7 +96,6 @@ class MotorController(object):
                 logger.info("failed to receive ACK")
             else:
                 checks['serial']['status'] = 'OK'
-                self._initialized = True
                 logger.info("initialization complete")
 
         return checks
@@ -117,19 +120,36 @@ class MotorController(object):
             logger.info("   ...no ACK")
         return None
 
-    def _confirm_with_handshake(self, serial):
+    def _confirm_with_handshake(self, _serial):
         timeout = Configuration.config().get('serial_timeout')
-        serial.write(bytes(f"{HANDSHAKE}:", 'utf-8'))
-        time.sleep(1)
-        data = serial.readline()
-        attempts = int(HANDSHAKE_TIMEOUT / (HANDSHAKE_POLL_SLEEP + timeout))
-        for i in range(attempts):
-            data = serial.readline().decode('utf-8').strip()
-            if data == HANDSHAKE_ACK:
-                return True
-            if i < attempts - 1:
-                time.sleep(HANDSHAKE_POLL_SLEEP)
+        for i in range(5):
+            _serial.write(bytes(f"{HANDSHAKE}:", 'utf-8'))
+            time.sleep(1)
+            data = _serial.readline()
+            attempts = int(HANDSHAKE_TIMEOUT / (HANDSHAKE_POLL_SLEEP + timeout))
+            for i in range(attempts):
+                data = _serial.readline().decode('utf-8').strip()
+                if data == HANDSHAKE_ACK:
+                    return True
+                if i < attempts - 1:
+                    time.sleep(HANDSHAKE_POLL_SLEEP)
         return False
+
+    def get_serial(self):
+        if self._serial:
+            return self._serial
+        port = Configuration.config().get('arduino_port')
+        baudrate = Configuration.config().get('serial_baudrate')
+        timeout = Configuration.config().get('serial_timeout')
+        _serial = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
+        for i in range(CONNECT_POLL_ATTEMPTS):
+            if _serial.is_open:
+                logger.info("serial port opened successfully")
+                self._confirm_with_handshake(_serial)
+                self._serial = _serial
+                return self._serial
+            time.sleep(CONNECT_POLL_SLEEP)
+        return None
 
     # TODO: not sure how port detection will play with the rest of the flow yet
     # def configure(self, port=None, baudrate=None, timeout=None):
@@ -167,12 +187,13 @@ class MotorController(object):
     def write_read(self, cmd):
         if not self._initialized:
             raise MotorControllerException('controller not initialized')
-        self._serial.write(bytes(cmd, 'utf-8'))
+        _serial = self.get_serial()
+        _serial.write(bytes(cmd, 'utf-8'))
         time.sleep(0.05)
         response = []
-        data = self._serial.readline()
+        data = _serial.readline()
         while data:
-            data = self._serial.readline().decode('utf-8').strip()
+            data = _serial.readline().decode('utf-8').strip()
             response.append(data)
         return response
 

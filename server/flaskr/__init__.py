@@ -5,6 +5,7 @@ import sys
 from flask import Flask
 from flask_cors import CORS
 
+from .axis_controller import AxisController
 from .motor_controller import MotorController
 from .config import Configuration
 
@@ -47,6 +48,9 @@ def create_app(test_config=None):
 
     from . import chess_v1
     app.register_blueprint(chess_v1.bp)
+
+    app.motor_controller = MotorController.instance()
+    app.axis_controller = AxisController.instance()
 
     logging.info("App initialization complete")
 

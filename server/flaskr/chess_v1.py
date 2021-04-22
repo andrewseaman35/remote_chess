@@ -1,10 +1,16 @@
-from flask import (Blueprint, render_template, request, Response, jsonify)
+from flask import (
+    current_app,
+    Blueprint,
+    render_template,
+    request,
+    Response,
+    jsonify,
+)
 from flask_cors import cross_origin
 from werkzeug.exceptions import BadRequest
 
-from .exceptions import AxisControllerException
+from .exceptions import AxisControllerException, MotorControllerException
 
-from .motor_controller import MotorController
 from .axis_controller import AxisController
 from .chess_controller import ChessController
 
@@ -19,7 +25,7 @@ def test():
 @bp.route('/raw_write', methods=['POST'])
 def raw_write():
     json_data = request.get_json()
-    response = MotorController.instance().write_read(json_data['command'])
+    response = current_app.motor_controller.write_read(json_data['command'])
     return jsonify({'data': response})
 
 
@@ -27,7 +33,7 @@ def raw_write():
 def test_printer_action():
     json_data = request.get_json()
     action = json_data['action']
-    controller = AxisController.instance()
+    controller = current_app.axis_controller
     if action == 'homeXY':
         response = controller.home(x=True, y=True)
     elif action == 'homeZ':
@@ -64,16 +70,43 @@ def test_printer_action():
 @bp.route('/octoprint_status', methods=['GET'])
 @cross_origin()
 def octoprint_status():
-    status = AxisController.instance().get_octoprint_server_status()
+    status = current_app.axis_controller.get_octoprint_server_status()
     return jsonify(status)
+
+
+@bp.route('/initialize_octoprint', methods=['GET'])
+@cross_origin()
+def intialize_octoprint():
+    initialized, message = current_app.axis_controller.intialize_octoprint()
+    if initialized:
+        return '', 204
+    raise BadRequest(response.reason)
 
 
 @bp.route('/initialize_controller', methods=['GET'])
 @cross_origin()
 def initialize_controller():
-    status = MotorController.instance().initialize_controller()
+    initialized, message = current_app.motor_controller.initialize()
+    if initialized:
+        return '', 204
+    raise BadRequest(response.reason)
+
+
+@bp.route('/controller_serial_status', methods=['GET'])
+@cross_origin()
+def controller_serial_status():
+    try:
+        status = current_app.motor_controller.get_controller_serial_status()
+    except MotorControllerException as e:
+        raise BadRequest(e)
     return jsonify(status)
 
+
+@bp.route('/reset_axis', methods=['GET'])
+@cross_origin()
+def reset_axis():
+    current_app.axis_controller.home(x=True, y=True, z=True, use_hand_offset=True)
+    return '', 204
 
 @bp.route('/move', methods=['POST'])
 @cross_origin()

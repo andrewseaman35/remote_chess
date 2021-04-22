@@ -1,3 +1,4 @@
+from flask import current_app
 import time
 
 from .axis_controller import AxisController
@@ -11,7 +12,7 @@ class ChessController(object):
     def move_piece(self, starting_space, ending_space):
         # assume that we start above the pieces
         axis_controller = AxisController.instance()
-        motor_controller = MotorController.instance()
+        motor_controller = current_app.motor_controller
         axis_controller.move_to_space(starting_space)
         time.sleep(5)  # Let's just make this more than it'll ever be
         motor_controller.z_down()

@@ -99,7 +99,6 @@ class AxisController(object):
         )
         if response.ok:
             logger.info("OctoPrint initialization complete")
-            self.home(x=True, y=True, z=True, use_hand_offset=True)
             self._initialized = True
             return True, ''
 
@@ -279,6 +278,8 @@ class AxisController(object):
         logger.info(f"moving to absolute position: ({x}, {y}, {z})")
         if not self._initialized:
             raise AxisControllerException("axis controller not initialized")
+        if not self.has_been_homed:
+            raise AxisControllerException("home axes first")
 
         data = {'absolute': True, 'command': "jog"}
         if x is not None:

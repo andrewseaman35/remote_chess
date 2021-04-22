@@ -102,20 +102,23 @@ def controller_serial_status():
     return jsonify(status)
 
 
-@bp.route('/reset_axis', methods=['GET'])
+@bp.route('/home_axes', methods=['GET'])
 @cross_origin()
-def reset_axis():
+def home_axes():
     current_app.axis_controller.home(x=True, y=True, z=True, use_hand_offset=True)
     return '', 204
 
-@bp.route('/move', methods=['POST'])
+
+@bp.route('/perform_moves', methods=['POST'])
 @cross_origin()
-def move():
+def perform_moves():
+    # change to a list of dicts with {action: [move|capture], startingSpace: B3, endingSpace: A1}
     json_data = request.get_json()
     try:
-        response = ChessController.instance().move_piece(
-            json_data['starting_space'],
-            json_data['ending_space'],
+        response = ChessController.instance().perform_moves(
+            moves=json_data['moves'],
+            skip_hand=True,
         );
     except AxisControllerException as e:
         raise BadRequest(e)
+    return '', 204

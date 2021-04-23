@@ -193,7 +193,7 @@ class AxisController(object):
 
         config = Configuration.config()
         board_x_offset = config.get('board_x_offset')
-        board_x_padding = ((config.get('board_width') - (config.get('space_width') * NUM_FILES)) / 2)
+        board_x_padding = config.get('board_x_padding')
         board_left_edge = board_x_offset + board_x_padding
         space_edge = board_left_edge + int(config.get('space_width') * file_index)
         space_center = space_edge + (config.get('space_width') / 2)
@@ -202,14 +202,12 @@ class AxisController(object):
 
     def _calculate_y_from_rank(self, rank):
         rank_index = rank_to_index(rank)
-        printer_profile = self.printer_profile()
-        depth = printer_profile['volume']['depth']
 
         config = Configuration.config()
         board_y_offset = config.get('board_y_offset')
-        board_y_padding = ((config.get('board_depth') - (config.get('space_depth') * NUM_RANKS)) / 2)
-        board_far_edge = board_y_offset + board_y_padding
-        space_edge = board_far_edge + int(config.get('space_depth') * rank_index)
+        board_y_padding = config.get('board_y_padding')
+        board_near_edge = board_y_offset + board_y_padding
+        space_edge = board_near_edge + int(config.get('space_depth') * rank_index)
 
         space_center = space_edge + (config.get('space_depth') / 2)
         y_position = space_center - config.get('printhead_y_offset')

@@ -109,6 +109,27 @@ def home_axes():
     return '', 204
 
 
+@bp.route('/move_to_space', methods=['GET'])
+@cross_origin()
+def move_to_space():
+    space = user = request.args.get('space')
+    current_app.axis_controller.move_to_space(space)
+    return '', 204
+
+
+@bp.route('/move_hand_z_axis', methods=['GET'])
+@cross_origin()
+def move_hand_z_axis():
+    direction = request.args.get('direction')
+    if direction == 'up':
+        current_app.motor_controller.z_up()
+    elif direction == 'down':
+        current_app.motor_controller.z_down()
+    else:
+        raise BadRequest("direction param must be either 'up' or 'down'")
+    return '', 204
+
+
 @bp.route('/perform_moves', methods=['POST'])
 @cross_origin()
 def perform_moves():
@@ -117,7 +138,7 @@ def perform_moves():
     try:
         response = ChessController.instance().perform_moves(
             moves=json_data['moves'],
-            skip_hand=True,
+            skip_hand=json_data.get('skip_hand') == 'true',
         );
     except AxisControllerException as e:
         raise BadRequest(e)

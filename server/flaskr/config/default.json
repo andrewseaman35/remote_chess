@@ -6,13 +6,15 @@
     "octoprint_api_key": "",
     "octoprint_ip_address": "",
     "printer_stepper_timeout": 800,
-    "printhead_x_offset": -36,
-    "printhead_y_offset": -70,
+    "printhead_x_offset": -39,
+    "printhead_y_offset": -65,
     "printhead_speed": 4000,
-    "board_x_offset": 10,
-    "board_y_offset": 10,
-    "board_width": 210,
-    "board_depth": 210,
-    "space_width": 24,
-    "space_depth": 24
+    "board_x_offset": 19,
+    "board_y_offset": 27,
+    "board_x_padding": 0,
+    "board_y_padding": 0,
+    "board_width": 160,
+    "board_depth": 160,
+    "space_width": 20,
+    "space_depth": 20
 }
